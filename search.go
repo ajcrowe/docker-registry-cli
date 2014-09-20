@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
-	"log"
-	"strconv"
 )
 
 type search struct {
@@ -22,28 +20,31 @@ type searchResult struct {
 func doSearch(c *cli.Context) {
 	searchTerm := c.Args().First()
 
-	var JSONResults []byte
-	JSONResults = NewRequestGet(fmt.Sprintf("search?q=%s", searchTerm))
-
 	var results search
-	json.Unmarshal(JSONResults, &results)
-	log.Println("found: " + strconv.Itoa(results.ResultCount) + " when searching for " + results.Query)
+	json.Unmarshal(NewRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
+
+	w := getTabWriter()
+
+	writeLine(w, fmt.Sprintf("%d results for: %s", results.ResultCount, results.Query))
+	writeHeader(w, "Repository", "Description")
 
 	for _, result := range results.Results {
-		log.Println("Name: " + result.Name + " Description: " + result.Description)
+		writeLine(w, result.Name, result.Description)
 	}
+	w.Flush()
 }
 
 func doSearchAll(c *cli.Context) {
-	log.Println("listing all images in " + INDEX_URL)
-	var JSONResults []byte
-	JSONResults = NewRequestGet("search")
-
 	var results search
-	json.Unmarshal(JSONResults, &results)
-	log.Println("found: " + strconv.Itoa(results.ResultCount))
+	json.Unmarshal(NewRequestGet("search"), &results)
+
+	w := getTabWriter()
+
+	writeLine(w, fmt.Sprintf("%d results", results.ResultCount))
+	writeHeader(w, "Repository", "Description")
 
 	for _, result := range results.Results {
-		log.Println("Name: " + result.Name + " Description: " + result.Description)
+		writeLine(w, result.Name, result.Description)
 	}
+	w.Flush()
 }

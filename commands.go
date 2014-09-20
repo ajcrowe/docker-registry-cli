@@ -12,13 +12,21 @@ var Commands = []cli.Command{
 
 var commandTags = cli.Command{
 	Name:        "tags",
-	Usage:       "list/create/delete tags for a specific repository",
+	Usage:       "list/view/create/delete tags for a specific repository",
 	Description: `...`,
 	Subcommands: []cli.Command{
 		{
 			Name:   "list",
 			Usage:  "list tags for an image",
 			Action: doListTags,
+			Flags: []cli.Flag{
+				QuietFlag(),
+			},
+		},
+		{
+			Name:   "info",
+			Usage:  "show detailed tag info",
+			Action: doTagInfo,
 			Flags: []cli.Flag{
 				QuietFlag(),
 			},

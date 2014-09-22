@@ -29,3 +29,16 @@ func writeHeader(w *tabwriter.Writer, values ...string) {
 	}
 	fmt.Fprintln(w, header)
 }
+
+func statusOK(w *tabwriter.Writer, cmd string, status int) bool {
+	if status == 200 {
+		return true
+	} else if status == 404 {
+		fmt.Fprintf(w, "%s: 404 Not Found", cmd)
+	} else if status == 400 {
+		fmt.Fprintf(w, "%s: 400 Invalid Data", cmd)
+	} else {
+		fmt.Fprintf(w, "%s: Unknown Error Status %d", cmd, status)
+	}
+	return false
+}

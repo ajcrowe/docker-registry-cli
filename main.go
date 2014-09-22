@@ -24,15 +24,20 @@ func main() {
 	INDEX_URL = getIndexURI()
 
 	app := cli.NewApp()
+	// configure app
 	app.Name = "drcli"
 	app.Usage = "Manage you docker registry images & tags"
 	app.Version = VERSION
 	app.Author = "Alex Crowe"
+	// register commands with app
 	app.Commands = Commands
-
+	// run app and pass args
 	app.Run(os.Args)
 }
 
+// getIndexURI reads .drcli file and parses it into the Config struct
+// if this file doesn't exist it will attempt to read the REGISTRY_URI
+// environment variable.
 func getIndexURI() string {
 	text, err := ioutil.ReadFile(os.Getenv("HOME") + "/.drcli")
 	if err != nil {

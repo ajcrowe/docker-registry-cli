@@ -1,14 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
 
-func NewRequestGet(rURL string) []byte {
-	url := fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, rURL)
+func newRequestGet(path string) []byte {
+	url := fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, path)
 	log.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -16,6 +17,22 @@ func NewRequestGet(rURL string) []byte {
 	}
 	content := readRequest(resp)
 	return content
+}
+
+func newRequestPut(path, data string) int {
+	url := fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, path)
+	log.Print(url)
+	log.Print(data)
+
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(data)))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	return resp.StatusCode
 }
 
 func readRequest(resp *http.Response) []byte {

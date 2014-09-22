@@ -21,7 +21,7 @@ func doSearch(c *cli.Context) {
 	searchTerm := c.Args().First()
 
 	var results search
-	json.Unmarshal(NewRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
+	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
 
 	w := getTabWriter()
 
@@ -36,7 +36,7 @@ func doSearch(c *cli.Context) {
 
 func doSearchAll(c *cli.Context) {
 	var results search
-	json.Unmarshal(NewRequestGet("search"), &results)
+	json.Unmarshal(newRequestGet("search"), &results)
 
 	w := getTabWriter()
 

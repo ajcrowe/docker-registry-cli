@@ -61,31 +61,30 @@ func doTagInfo(c *cli.Context) {
 	tag := c.Args().Get(1)
 
 	w := getTabWriter()
+	defer w.Flush()
 
 	if !checkTagExists(repo, tag) {
 		writeLine(w, fmt.Sprintf("Tag: \"%s\" does not exist in repo \"%s\"", tag, repo))
-		w.Flush()
 		os.Exit(1)
+	} else {
+		var t Tag
+		json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s/json", repo, tag)), &t)
+		t.ImageID = getImageIDByTag(repo, tag)
+		log.Println(t.ImageID)
+
+		if c.Bool("quiet") == false {
+			writeLine(w, fmt.Sprintf("Detail for: %s:%s", repo, tag))
+			writeHeader(w, "Parameter", "Value")
+		}
+
+		writeLine(w, "Image ID", t.ImageID)
+		writeLine(w, "Architecture", t.Arch)
+		writeLine(w, "Docker Go Version", t.DockerGoVersion)
+		writeLine(w, "Docker Version", t.DockerVersion)
+		writeLine(w, "Kernel", t.Kernel)
+		writeLine(w, "Last Update", t.timeRFC3339())
+		writeLine(w, "OS", t.OS)
 	}
-
-	var t Tag
-	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s/json", repo, tag)), &t)
-	t.ImageID = getImageIDByTag(repo, tag)
-	log.Println(t.ImageID)
-
-	if c.Bool("quiet") == false {
-		writeLine(w, fmt.Sprintf("Detail for: %s:%s", repo, tag))
-		writeHeader(w, "Parameter", "Value")
-	}
-
-	writeLine(w, "Image ID", t.ImageID)
-	writeLine(w, "Architecture", t.Arch)
-	writeLine(w, "Docker Go Version", t.DockerGoVersion)
-	writeLine(w, "Docker Version", t.DockerVersion)
-	writeLine(w, "Kernel", t.Kernel)
-	writeLine(w, "Last Update", t.timeRFC3339())
-	writeLine(w, "OS", t.OS)
-	w.Flush()
 }
 
 func getImageIDByTag(repo, tag string) (id string) {
@@ -109,22 +108,28 @@ func checkTagExists(repo, tag string) bool {
 
 func doCreateTag(c *cli.Context) {
 	repo := c.Args().Get(0)
-	image := c.Args().Get(1)
+	image := "\"" + c.Args().Get(1) + "\""
 	tag := c.Args().Get(2)
 
 	w := getTabWriter()
+	defer w.Flush()
 
 	status := newRequestPut(fmt.Sprintf("repositories/%s/tags/%s", repo, tag), image)
 	if statusOK(w, "Create Tag", status) {
-		fmt.Sprintln("Successfully created tag: %s:%s for image %s", repo, tag, image)
-		w.Flush()
-	} else {
-		w.Flush()
+		writeLine(w, fmt.Sprintf("Successfully created tag: %s:%s for image %s", repo, tag, image))
 	}
 
 }
 
 func doDeleteTag(c *cli.Context) {
-	//repo := c.Args().First()
-	//tag := c.Args().Get(1)
+	repo := c.Args().Get(0)
+	tag := c.Args().Get(1)
+
+	w := getTabWriter()
+	defer w.Flush()
+
+	status := newRequestDelete(fmt.Sprintf("repositories/%s/tags/%s", repo, tag))
+	if statusOK(w, "Delete Tag", status) {
+		writeLine(w, fmt.Sprintf("Successfully deleted tag: %s:%s", repo, tag))
+	}
 }

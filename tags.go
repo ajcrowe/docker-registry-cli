@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
-	"log"
-	"os"
 	"time"
 )
 
@@ -29,14 +27,16 @@ func (t *Tag) timeRFC3339() string {
 // doListTags outputs all the tags associated with a specific repository
 func doListTags(c *cli.Context) {
 	repo := c.Args().First()
+
+	w := getTabWriter()
+	defer w.Flush()
+
 	if repo == "" {
-		log.Println("please enter a repository.")
+		writeLine(w, "Usage: tags list <namespace/repository>")
 		return
 	}
 
 	tags := getRepoTags(repo)
-
-	w := getTabWriter()
 
 	if c.Bool("quiet") == false {
 		writeLine(w, fmt.Sprintf("%d tags for repo %s", len(tags), repo))
@@ -46,7 +46,6 @@ func doListTags(c *cli.Context) {
 	for tag, img := range tags {
 		writeLine(w, tag, img)
 	}
-	w.Flush()
 }
 
 func getRepoTags(repo string) map[string]string {
@@ -63,14 +62,15 @@ func doTagInfo(c *cli.Context) {
 	w := getTabWriter()
 	defer w.Flush()
 
-	if !checkTagExists(repo, tag) {
-		writeLine(w, fmt.Sprintf("Tag: \"%s\" does not exist in repo \"%s\"", tag, repo))
-		os.Exit(1)
-	} else {
+	if repo == "" || tag == "" {
+		writeLine(w, "Usage: tags info <namespace/repository> <tag>")
+		return
+	}
+
+	if repoExists(repo) && tagExists(repo, tag) {
 		var t Tag
 		json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s/json", repo, tag)), &t)
 		t.ImageID = getImageIDByTag(repo, tag)
-		log.Println(t.ImageID)
 
 		if c.Bool("quiet") == false {
 			writeLine(w, fmt.Sprintf("Detail for: %s:%s", repo, tag))
@@ -84,16 +84,17 @@ func doTagInfo(c *cli.Context) {
 		writeLine(w, "Kernel", t.Kernel)
 		writeLine(w, "Last Update", t.timeRFC3339())
 		writeLine(w, "OS", t.OS)
+	} else {
+		writeLine(w, fmt.Sprintf("Error: \"%s:%s\" not found", repo, tag))
 	}
 }
 
 func getImageIDByTag(repo, tag string) (id string) {
 	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
-	log.Println(id)
 	return id
 }
 
-func checkTagExists(repo, tag string) bool {
+func tagExists(repo, tag string) bool {
 	// get the imageid to check tag exists
 	var id string
 	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
@@ -104,6 +105,19 @@ func checkTagExists(repo, tag string) bool {
 	} else {
 		return false
 	}
+}
+
+func repoExists(repo string) bool {
+	// get any matching repositories
+	var results search
+	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", repo)), &results)
+	// iterate over the results and check for an exact match
+	for _, result := range results.Results {
+		if result.Name == repo {
+			return true
+		}
+	}
+	return false
 }
 
 func doCreateTag(c *cli.Context) {

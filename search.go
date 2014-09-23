@@ -24,6 +24,7 @@ func doSearch(c *cli.Context) {
 	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
 
 	w := getTabWriter()
+	defer w.Flush()
 
 	writeLine(w, fmt.Sprintf("%d results for: %s", results.ResultCount, results.Query))
 	writeHeader(w, "Repository", "Description")
@@ -31,7 +32,6 @@ func doSearch(c *cli.Context) {
 	for _, result := range results.Results {
 		writeLine(w, result.Name, result.Description)
 	}
-	w.Flush()
 }
 
 func doSearchAll(c *cli.Context) {
@@ -39,6 +39,7 @@ func doSearchAll(c *cli.Context) {
 	json.Unmarshal(newRequestGet("search"), &results)
 
 	w := getTabWriter()
+	defer w.Flush()
 
 	writeLine(w, fmt.Sprintf("%d results", results.ResultCount))
 	writeHeader(w, "Repository", "Description")
@@ -46,5 +47,4 @@ func doSearchAll(c *cli.Context) {
 	for _, result := range results.Results {
 		writeLine(w, result.Name, result.Description)
 	}
-	w.Flush()
 }

@@ -9,8 +9,8 @@ import (
 )
 
 func newRequestGet(path string) []byte {
-	url := fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, path)
-	log.Println(url)
+	url := formatURL(path)
+
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Println(err)
@@ -20,14 +20,28 @@ func newRequestGet(path string) []byte {
 }
 
 func newRequestPut(path, data string) int {
-	url := fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, path)
-	log.Print(url)
-	log.Print(data)
+	url := formatURL(path)
 
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(data)))
-	req.Header.Add("Content-Type", "application/json")
+	setHeaders(req)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	return resp.StatusCode
+}
+
+func newRequestDelete(path string) int {
+	url := formatURL(path)
+
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	setHeaders(req)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
@@ -42,4 +56,13 @@ func readRequest(resp *http.Response) []byte {
 		log.Println(err)
 	}
 	return contents
+}
+
+func formatURL(path string) string {
+	return fmt.Sprintf("%s/%s/%s", INDEX_URL, INDEX_API_VERSION, path)
+}
+
+func setHeaders(req *http.Request) {
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 }

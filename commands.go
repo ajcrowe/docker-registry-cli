@@ -35,7 +35,7 @@ var commandTags = cli.Command{
 		},
 		{
 			Name:   "delete",
-			Usage:  "delete tag for an image",
+			Usage:  "delete a tag in a repository",
 			Action: doDeleteTag,
 		},
 		{
@@ -49,7 +49,7 @@ var commandTags = cli.Command{
 // commandSearch defines the search command.
 var commandSearch = cli.Command{
 	Name:        "search",
-	Usage:       "search the index",
+	Usage:       "search for a repository in the registry",
 	Description: `...`,
 	Action:      doSearch,
 }
@@ -57,7 +57,7 @@ var commandSearch = cli.Command{
 // commandList defines the list command for listing all repositories.
 var commandList = cli.Command{
 	Name:        "list",
-	Usage:       "list all repositories in the index",
+	Usage:       "list all repositories in the registry",
 	Description: `...`,
 	Action:      doSearchAll,
 }

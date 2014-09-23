@@ -129,7 +129,7 @@ func doCreateTag(c *cli.Context) {
 	defer w.Flush()
 
 	status := newRequestPut(fmt.Sprintf("repositories/%s/tags/%s", repo, tag), image)
-	if statusOK(w, "Create Tag", status) {
+	if statusOK(w, status) {
 		writeLine(w, fmt.Sprintf("Successfully created tag: %s:%s for image %s", repo, tag, image))
 	}
 
@@ -143,7 +143,7 @@ func doDeleteTag(c *cli.Context) {
 	defer w.Flush()
 
 	status := newRequestDelete(fmt.Sprintf("repositories/%s/tags/%s", repo, tag))
-	if statusOK(w, "Delete Tag", status) {
+	if statusOK(w, status) {
 		writeLine(w, fmt.Sprintf("Successfully deleted tag: %s:%s", repo, tag))
 	}
 }

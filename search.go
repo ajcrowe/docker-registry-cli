@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"text/tabwriter"
 )
 
 type search struct {
@@ -17,6 +18,13 @@ type searchResult struct {
 	Description string `json:"description"`
 }
 
+func (s *search) printResults(w *tabwriter.Writer) {
+	writeHeader(w, "Repository", "Description")
+	for _, r := range s.Results {
+		writeLine(w, r.Name, r.Description)
+	}
+}
+
 func doSearch(c *cli.Context) {
 	searchTerm := c.Args().First()
 
@@ -27,11 +35,7 @@ func doSearch(c *cli.Context) {
 	defer w.Flush()
 
 	writeLine(w, fmt.Sprintf("%d results for: %s", results.ResultCount, results.Query))
-	writeHeader(w, "Repository", "Description")
-
-	for _, result := range results.Results {
-		writeLine(w, result.Name, result.Description)
-	}
+	results.printResults(w)
 }
 
 func doSearchAll(c *cli.Context) {
@@ -42,9 +46,5 @@ func doSearchAll(c *cli.Context) {
 	defer w.Flush()
 
 	writeLine(w, fmt.Sprintf("%d results", results.ResultCount))
-	writeHeader(w, "Repository", "Description")
-
-	for _, result := range results.Results {
-		writeLine(w, result.Name, result.Description)
-	}
+	results.printResults(w)
 }

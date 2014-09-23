@@ -30,15 +30,17 @@ func writeHeader(w *tabwriter.Writer, values ...string) {
 	fmt.Fprintln(w, header)
 }
 
-func statusOK(w *tabwriter.Writer, cmd string, status int) bool {
+func statusOK(w *tabwriter.Writer, status int) bool {
 	if status == 200 {
 		return true
 	} else if status == 404 {
-		fmt.Fprintf(w, "%s: 404 Not Found", cmd)
+		fmt.Fprintf(w, "Error: 404 - Not found")
 	} else if status == 400 {
-		fmt.Fprintf(w, "%s: 400 Invalid Data", cmd)
+		fmt.Fprintf(w, "Error: 400 - Invalid data")
+	} else if status == 401 {
+		fmt.Fprintf(w, "Error: 401 - Requires authorisation")
 	} else {
-		fmt.Fprintf(w, "%s: Unknown Error Status %d", cmd, status)
+		fmt.Fprintf(w, "Error: %d - Unknown error", status)
 	}
 	return false
 }

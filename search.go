@@ -18,6 +18,7 @@ type searchResult struct {
 	Description string `json:"description"`
 }
 
+// printResults iterates over search results and prints them to the tabwriter
 func (s *search) printResults(w *tabwriter.Writer) {
 	writeHeader(w, "Repository", "Description")
 	for _, r := range s.Results {
@@ -25,19 +26,25 @@ func (s *search) printResults(w *tabwriter.Writer) {
 	}
 }
 
+// doSearch prints all matching repositories in the registry
 func doSearch(c *cli.Context) {
 	searchTerm := c.Args().First()
 
-	var results search
-	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
-
 	w := getTabWriter()
 	defer w.Flush()
+
+	if searchTerm == "" {
+		writeLine(w, "Error: Please specify a search term")
+	}
+
+	var results search
+	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", searchTerm)), &results)
 
 	writeLine(w, fmt.Sprintf("%d results for: %s", results.ResultCount, results.Query))
 	results.printResults(w)
 }
 
+// doSearchAll prints all repositories in the registry
 func doSearchAll(c *cli.Context) {
 	var results search
 	json.Unmarshal(newRequestGet("search"), &results)

@@ -48,13 +48,7 @@ func doListTags(c *cli.Context) {
 	}
 }
 
-func getRepoTags(repo string) map[string]string {
-	var tags map[string]string
-	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags", repo)), &tags)
-	return tags
-}
-
-// doTagInfo output all the detailed informa
+// doTagInfo outputs all the detailed information for the specified tag
 func doTagInfo(c *cli.Context) {
 	repo := c.Args().First()
 	tag := c.Args().Get(1)
@@ -76,7 +70,7 @@ func doTagInfo(c *cli.Context) {
 			writeLine(w, fmt.Sprintf("Detail for: %s:%s", repo, tag))
 			writeHeader(w, "Parameter", "Value")
 		}
-
+		// output the tag details
 		writeLine(w, "Image ID", t.ImageID)
 		writeLine(w, "Architecture", t.Arch)
 		writeLine(w, "Docker Go Version", t.DockerGoVersion)
@@ -89,37 +83,7 @@ func doTagInfo(c *cli.Context) {
 	}
 }
 
-func getImageIDByTag(repo, tag string) (id string) {
-	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
-	return id
-}
-
-func tagExists(repo, tag string) bool {
-	// get the imageid to check tag exists
-	var id string
-	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
-
-	// check if imageid is returned
-	if id != "" {
-		return true
-	} else {
-		return false
-	}
-}
-
-func repoExists(repo string) bool {
-	// get any matching repositories
-	var results search
-	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", repo)), &results)
-	// iterate over the results and check for an exact match
-	for _, result := range results.Results {
-		if result.Name == repo {
-			return true
-		}
-	}
-	return false
-}
-
+// creates a tag for a specific
 func doCreateTag(c *cli.Context) {
 	repo := c.Args().Get(0)
 	image := "\"" + c.Args().Get(1) + "\""
@@ -135,6 +99,7 @@ func doCreateTag(c *cli.Context) {
 
 }
 
+// ooDeleteTag deletes a specfic tag
 func doDeleteTag(c *cli.Context) {
 	repo := c.Args().Get(0)
 	tag := c.Args().Get(1)
@@ -146,4 +111,45 @@ func doDeleteTag(c *cli.Context) {
 	if statusOK(w, status) {
 		writeLine(w, fmt.Sprintf("Successfully deleted tag: %s:%s", repo, tag))
 	}
+}
+
+// getRepoTags returns a map[string]string with the names and descriptions of all the tags in a specific repo
+func getRepoTags(repo string) map[string]string {
+	var tags map[string]string
+	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags", repo)), &tags)
+	return tags
+}
+
+// getImageIDByTag returns the imageid of a tag
+func getImageIDByTag(repo, tag string) (id string) {
+	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
+	return id
+}
+
+// tagexists checks the existence of a specific tag in a specific repository
+func tagExists(repo, tag string) bool {
+	// get the imageid to check tag exists
+	var id string
+	json.Unmarshal(newRequestGet(fmt.Sprintf("repositories/%s/tags/%s", repo, tag)), &id)
+
+	// check if imageid is returned
+	if id != "" {
+		return true
+	} else {
+		return false
+	}
+}
+
+// repoExists check the specified repository exists in the registry
+func repoExists(repo string) bool {
+	// get any matching repositories
+	var results search
+	json.Unmarshal(newRequestGet(fmt.Sprintf("search?q=%s", repo)), &results)
+	// iterate over the results and check for an exact match
+	for _, result := range results.Results {
+		if result.Name == repo {
+			return true
+		}
+	}
+	return false
 }
